@@ -11,6 +11,11 @@ contract Escrow {
         DISPUTE
     }
 
+    struct DisputeReason {
+        address sender;
+        string message;
+    }
+
     address public user;
     address public useer2;
     uint256 public amount;
@@ -21,6 +26,7 @@ contract Escrow {
     bool public isCreatorPaying;
     address public token;
     ContractState public contratctState;
+    DisputeReason[] private disputeReasons;
 
     constructor(
         address _user1,
@@ -48,6 +54,17 @@ contract Escrow {
                 "approved amount not match with escrow amount."
             );
         }
+    }
+
+    modifier approvedUsers() {
+        for (uint i = 0; i < disputeResolver.length; i++) {
+            require(
+                msg.sender == disputeResolver[i] ||
+                    msg.sender == useer2 ||
+                    msg.sender == user
+            );
+        }
+        _;
     }
 
     function confirmEscrow() external {
@@ -83,5 +100,21 @@ contract Escrow {
             require(msg.sender == useer2, "only payer can perform this action");
             IERC20(token).transfer(user, amount);
         }
+    }
+
+    function createDispute(string memory _message) external {
+        require(contratctState == ContractState.IS_ACTIVE, "escrow not active");
+        require(msg.sender == user || msg.sender == useer2);
+        disputeReasons.push(
+            DisputeReason({sender: msg.sender, message: _message})
+        );
+        contratctState = ContractState.DISPUTE;
+    }
+
+    function answerDispute(string memory _message) external {
+        require(
+            contratctState == ContractState.IS_ACTIVE,
+            "only disputed escrow can be treated here"
+        );
     }
 }
