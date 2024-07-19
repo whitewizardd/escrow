@@ -39,4 +39,8 @@ contract EscrowFactory {
         userUserEscrow[msg.sender][_newEscrow._user2].push(newEscrow);
         return newEscrow;
     }
+
+    function getAllEscrow() external view returns (address[] memory) {
+        return escrowsAddresses;
+    }
 }
