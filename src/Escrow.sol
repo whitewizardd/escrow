@@ -40,7 +40,14 @@ contract Escrow {
         isCreatorPaying = isPayer;
         token = _token;
         contratctState = ContractState.IS_AWAITING_CONFIRMATION;
-        if (isPayer) IERC20(_token).approve(address(this), amount);
+        //require confirm paymnt;
+        if (isPayer) {
+            uint amountApproved = IERC20(_token).allowance(user, address(this));
+            require(
+                amountApproved >= _amount,
+                "approved amount not match with escrow amount."
+            );
+        }
     }
 
     function confirmEscrow() external {
@@ -58,12 +65,23 @@ contract Escrow {
             contratctState = ContractState.IS_ACTIVE;
         } else {
             bool success = IERC20(token).transferFrom(
-                user,
+                useer2,
                 address(this),
                 amount
             );
             require(success);
             contratctState = ContractState.IS_ACTIVE;
+        }
+    }
+
+    function releaseFund() external {
+        require(contratctState == ContractState.IS_ACTIVE, "escrow not active");
+        if (isCreatorPaying) {
+            require(msg.sender == user, "only payer can perform this action");
+            IERC20(token).transfer(useer2, amount);
+        } else {
+            require(msg.sender == useer2, "only payer can perform this action");
+            IERC20(token).transfer(user, amount);
         }
     }
 }
