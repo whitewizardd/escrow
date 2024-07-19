@@ -67,6 +67,16 @@ contract Escrow {
         _;
     }
 
+    modifier onlyDisputeResolver() {
+        for (uint i = 0; i < disputeResolver.length; i++) {
+            require(
+                msg.sender == disputeResolver[i],
+                "only allowed addresses can perform this action"
+            );
+        }
+        _;
+    }
+
     function confirmEscrow() external {
         require(
             msg.sender == useer2,
@@ -113,7 +123,7 @@ contract Escrow {
 
     function answerDispute(string memory _message) external approvedUsers {
         require(
-            contratctState == ContractState.IS_ACTIVE,
+            contratctState == ContractState.DISPUTE,
             "only disputed escrow can be treated here"
         );
         disputeReasons.push(
@@ -127,5 +137,14 @@ contract Escrow {
         returns (DisputeReason[] memory reasons)
     {
         reasons = disputeReasons;
+    }
+
+    function resolveDispute(
+        ContractState decision
+    ) external onlyDisputeResolver {
+        require(
+            contratctState == ContractState.DISPUTE,
+            "only disputed escrow can be treated here"
+        );
     }
 }
