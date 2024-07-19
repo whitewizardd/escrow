@@ -111,10 +111,21 @@ contract Escrow {
         contratctState = ContractState.DISPUTE;
     }
 
-    function answerDispute(string memory _message) external {
+    function answerDispute(string memory _message) external approvedUsers {
         require(
             contratctState == ContractState.IS_ACTIVE,
             "only disputed escrow can be treated here"
         );
+        disputeReasons.push(
+            DisputeReason({sender: msg.sender, message: _message})
+        );
+    }
+
+    function getEscrowDisputeReasons()
+        external
+        view
+        returns (DisputeReason[] memory reasons)
+    {
+        reasons = disputeReasons;
     }
 }
