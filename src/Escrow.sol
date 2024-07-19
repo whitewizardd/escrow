@@ -8,7 +8,8 @@ contract Escrow {
         IS_AWAITING_CONFIRMATION,
         IS_ACTIVE,
         IS_CLOSED,
-        DISPUTE
+        DISPUTE,
+        IS_REFUNDED
     }
 
     struct DisputeReason {
@@ -25,7 +26,7 @@ contract Escrow {
     bool public nftDeal;
     bool public isCreatorPaying;
     address public token;
-    ContractState public contratctState;
+    ContractState public contractState;
     DisputeReason[] private disputeReasons;
 
     constructor(
@@ -45,7 +46,7 @@ contract Escrow {
         nftDeal = isNFT;
         isCreatorPaying = isPayer;
         token = _token;
-        contratctState = ContractState.IS_AWAITING_CONFIRMATION;
+        contractState = ContractState.IS_AWAITING_CONFIRMATION;
         //require confirm paymnt;
         if (isPayer) {
             uint amountApproved = IERC20(_token).allowance(user, address(this));
@@ -89,7 +90,7 @@ contract Escrow {
                 amount
             );
             require(success);
-            contratctState = ContractState.IS_ACTIVE;
+            contractState = ContractState.IS_ACTIVE;
         } else {
             bool success = IERC20(token).transferFrom(
                 useer2,
@@ -97,12 +98,12 @@ contract Escrow {
                 amount
             );
             require(success);
-            contratctState = ContractState.IS_ACTIVE;
+            contractState = ContractState.IS_ACTIVE;
         }
     }
 
     function releaseFund() external {
-        require(contratctState == ContractState.IS_ACTIVE, "escrow not active");
+        require(contractState == ContractState.IS_ACTIVE, "escrow not active");
         if (isCreatorPaying) {
             require(msg.sender == user, "only payer can perform this action");
             IERC20(token).transfer(useer2, amount);
@@ -113,17 +114,17 @@ contract Escrow {
     }
 
     function createDispute(string memory _message) external {
-        require(contratctState == ContractState.IS_ACTIVE, "escrow not active");
+        require(contractState == ContractState.IS_ACTIVE, "escrow not active");
         require(msg.sender == user || msg.sender == useer2);
         disputeReasons.push(
             DisputeReason({sender: msg.sender, message: _message})
         );
-        contratctState = ContractState.DISPUTE;
+        contractState = ContractState.DISPUTE;
     }
 
     function answerDispute(string memory _message) external approvedUsers {
         require(
-            contratctState == ContractState.DISPUTE,
+            contractState == ContractState.DISPUTE,
             "only disputed escrow can be treated here"
         );
         disputeReasons.push(
@@ -143,8 +144,17 @@ contract Escrow {
         ContractState decision
     ) external onlyDisputeResolver {
         require(
-            contratctState == ContractState.DISPUTE,
+            contractState == ContractState.DISPUTE,
             "only disputed escrow can be treated here"
         );
+
+        contractState = decision;
+        if (contractState == ContractState.IS_CLOSED) {
+            if (isCreatorPaying) {
+                IERC20(token).transfer(useer2, amount);
+            } else {
+                IERC20(token).transfer(user, amount);
+            }
+        }
     }
 }
