@@ -8,7 +8,6 @@ contract EscrowFactory {
     address[] public escrowsAddresses;
     address[] public resolvers;
     address public allowedToken;
-
     mapping(address => address[]) public usersEscrow;
     mapping(address => mapping(address => address[])) public userUserEscrow;
 
@@ -42,5 +41,11 @@ contract EscrowFactory {
 
     function getAllEscrow() external view returns (address[] memory) {
         return escrowsAddresses;
+    }
+
+    function getEscrowsWithAddress(
+        address userAddress
+    ) external view returns (address[] memory) {
+        return userUserEscrow[msg.sender][userAddress];
     }
 }
