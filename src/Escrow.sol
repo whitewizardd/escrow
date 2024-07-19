@@ -156,5 +156,13 @@ contract Escrow {
                 IERC20(token).transfer(user, amount);
             }
         }
+
+        if (decision == ContractState.IS_REFUNDED) {
+            if (isCreatorPaying) {
+                IERC20(token).transfer(user, amount);
+            } else {
+                IERC20(token).transfer(useer2, amount);
+            }
+        }
     }
 }
