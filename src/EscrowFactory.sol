@@ -16,7 +16,8 @@ contract EscrowFactory {
         bool isNFT;
         bool isPayer;
     }
-    function createEscrow(NewEscrow memory _newEscrow) external {
+
+    function createEscrow(NewEscrow memory _newEscrow) external returns (address) {
         Escrow escrow = new Escrow(
             msg.sender,
             _newEscrow._user2,
@@ -26,7 +27,9 @@ contract EscrowFactory {
             _newEscrow.isPayer,
             allowedToken
         );
+        address newEscrow = address(escrow);
         escrows.push(escrow);
-        escrowsAddresses.push(address(escrow));
+        escrowsAddresses.push(newEscrow);
+        return newEscrow;
     }
 }
