@@ -11,12 +11,19 @@ contract EscrowFactory {
     mapping(address => address[]) public usersEscrow;
     mapping(address => mapping(address => address[])) public userUserEscrow;
 
+    address public owner;
+
     struct NewEscrow {
         address _user2;
         uint256 _amount;
         // address[] memory _resolver,
         bool isNFT;
         bool isPayer;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        resolvers.push(msg.sender);
     }
 
     function createEscrow(
@@ -47,5 +54,17 @@ contract EscrowFactory {
         address userAddress
     ) external view returns (address[] memory) {
         return userUserEscrow[msg.sender][userAddress];
+    }
+
+    function addResolver(address _resolver) external {
+        require(msg.sender == owner, "only owner can perform this action");
+        resolvers.push(_resolver);
+    }
+
+    function addResolvers(address[] memory _resolver) external {
+        require(msg.sender == owner, "only owner can perform this action");
+        for (uint i = 0; i < _resolver.length; i++) {
+            resolvers.push(_resolver[i]);
+        }
     }
 }
