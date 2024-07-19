@@ -9,6 +9,9 @@ contract EscrowFactory {
     address[] public resolvers;
     address public allowedToken;
 
+    mapping(address => address[]) public usersEscrow;
+    mapping(address => mapping(address => address[])) public userUserEscrow;
+
     struct NewEscrow {
         address _user2;
         uint256 _amount;
@@ -17,7 +20,9 @@ contract EscrowFactory {
         bool isPayer;
     }
 
-    function createEscrow(NewEscrow memory _newEscrow) external returns (address) {
+    function createEscrow(
+        NewEscrow memory _newEscrow
+    ) external returns (address) {
         Escrow escrow = new Escrow(
             msg.sender,
             _newEscrow._user2,
@@ -30,6 +35,8 @@ contract EscrowFactory {
         address newEscrow = address(escrow);
         escrows.push(escrow);
         escrowsAddresses.push(newEscrow);
+        usersEscrow[msg.sender].push(newEscrow);
+        userUserEscrow[msg.sender][_newEscrow._user2].push(newEscrow);
         return newEscrow;
     }
 }
