@@ -21,9 +21,10 @@ contract EscrowFactory {
         bool isPayer;
     }
 
-    constructor() {
+    constructor(address _token) {
         owner = msg.sender;
         resolvers.push(msg.sender);
+        allowedToken = _token;
     }
 
     function createEscrow(
@@ -66,5 +67,20 @@ contract EscrowFactory {
         for (uint i = 0; i < _resolver.length; i++) {
             resolvers.push(_resolver[i]);
         }
+    }
+
+    function changeAllowedToken(address newTokenAddress) external {
+        require(msg.sender == owner, "only owner can perform this action");
+        // require(newTokenAddress.code.length > 0, "not a contract address");
+        require(isContract(newTokenAddress), "not a contract address");
+        allowedToken = newTokenAddress;
+    }
+
+    function isContract(address _token) private view returns (bool) {
+        uint codeSize = 0;
+        assembly {
+            codeSize := extcodesize(_token)
+        }
+        return codeSize > 0;
     }
 }
