@@ -147,7 +147,6 @@ contract Escrow {
             contractState == ContractState.DISPUTE,
             "only disputed escrow can be treated here"
         );
-
         contractState = decision;
         if (contractState == ContractState.IS_CLOSED) {
             if (isCreatorPaying) {
@@ -156,7 +155,6 @@ contract Escrow {
                 IERC20(token).transfer(user, amount);
             }
         }
-
         if (decision == ContractState.IS_REFUNDED) {
             if (isCreatorPaying) {
                 IERC20(token).transfer(user, amount);
